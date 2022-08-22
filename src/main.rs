@@ -3,6 +3,8 @@ use std::net::{Shutdown, TcpListener, TcpStream};
 use std::str::from_utf8;
 use std::thread;
 
+use serde_json::{Result, Value};
+
 mod client;
 
 fn handle_client(mut stream: TcpStream) {
@@ -30,22 +32,7 @@ fn main() {
             Ok(mut stream) => {
                 println!("New connection: {}", stream.peer_addr().unwrap());
 
-                let mut data = [0 as u8; 6]; // using 6 byte buffer
                 handle_connection(stream);
-
-                //
-                // match stream.read_exact(&mut data) {
-                //     Ok(_) => {
-                //         println!("{}", from_utf8(&data).unwrap());
-                //     }
-                //     Err(e) => {
-                //         println!("Failed to receive data: {}", e);
-                //     }
-                // }
-                // thread::spawn(move || {
-                //     // connection succeeded
-                //     handle_client(stream)
-                // });
             }
             Err(e) => {
                 println!("Error: {}", e);
@@ -62,8 +49,13 @@ fn handle_connection(mut stream: TcpStream) {
     let http_request: Vec<_> = buf_reader
         .lines()
         .map(|result| result.unwrap())
-        .take_while(|line| !line.is_empty())
+        .take_while(|line| {
+            println!("Request: {:#?}", line);
+            !line.is_empty()
+        })
         .collect();
 
+    // let v: Value = serde_json::from_str(data)?;
+    // println!("Request: {:#?}", serde_json::from_str(http_request));
     println!("Request: {:#?}", http_request);
 }
